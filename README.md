@@ -41,7 +41,7 @@ Nel sistema sono presenti due tipi di feedback:
 - <span style="background-color: lightgreen; color: darkgreen;">**Positivo**: Più grande è un magazzino, più probabilità una termite avrà di capitarci sopra ed appoggiare lì il proprio cibo, portandolo a ingrandirsi nel tempo.
 - <span style="background-color: lightcoral; color: darkred;">**Negativo**: Meno grande è un magazzino, meno probabilità una termite avrà di capitarci sopra ed appoggiare lì il proprio cibo, portandolo a ridursi nel tempo.
 
-### Esperimenti
+## Esperimenti
 
 Tutti gli esperimenti sottostanti sono stati eseguiti con i parametri di default qui elencati:
 
@@ -51,7 +51,7 @@ Tutti gli esperimenti sottostanti sono stati eseguiti con i parametri di default
 - `rg_libera`: 20
 - `angolo_virata`: 100
 
-#### Esperimento 1: Variazioni al valore di `rg_inerzia`
+### Esperimento 1: Variazioni al valore di `rg_inerzia`
 
 Si sono misurati i **magazzini formatosi dopo 1000 tick** al variare del parametro `rg_inerzia`.
 
@@ -59,7 +59,7 @@ Dai dati sperimentali emerge che il parametro non influenza particolarmente il n
 
 Tentativi di interpolazione non hanno fornito nessun risultato con i dati raccolti: il best fit è stato con la curva logaritmica, avente un misero `R^2 = 0.263`.  
 
-##### Dati sperimentali
+#### Dati sperimentali
 
 |`rg_inerzia`| Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 | Run 7 | Run 8 | Run 9 | Run 10 | Media |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -70,11 +70,11 @@ Tentativi di interpolazione non hanno fornito nessun risultato con i dati raccol
 |65|5	|5	|5	|7	|6	|6	|5	|5	|5	|6|**5.5**|
 |85|4	|4	|4	|4	|6	|5	|5	|3	|4	|3|**4.2**|
 
-##### Grafico
+#### Grafico
 
 ![](img/grafico-1-1.png)
 
-#### Esperimento 2: Variazioni al valore di `rg_libera` 
+### Esperimento 2: Variazioni al valore di `rg_libera` 
 
 Si sono misurati i **magazzini formatosi dopo 1000 tick** al variare del parametro `rg_libera`.
 
@@ -83,7 +83,7 @@ Dai dati sperimentali emerge che il valore del parametro `rg_libera` è inversam
 Probabilmente l'andamento è esponenziale: con il parametro impostato a 5 i magazzini sono ancora talmente tanti da risultare incalcolabili, ma aumentarla anche solo a 10 e li rende un numero definito.  
 Interpolando con una curva esponenziale, si è ottenuto un `R^2 = 0.989`.
 
-##### Dati sperimentali
+#### Dati sperimentali
 
 | `rg_libera` | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 | Run 7 | Run 8 | Run 9 | Run 10 | Media |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -96,11 +96,11 @@ Interpolando con una curva esponenziale, si è ottenuto un `R^2 = 0.989`.
 |35	|3	|2	|2	|2	|2	|2	|3	|3	|2	|3	|**2.4**|
 |40	|1	|2	|1	|2	|1	|2	|2	|3	|2	|1	|**1.7**|
 
-##### Grafico
+#### Grafico
 
 ![](img/grafico-1-2.png)
 
-#### Esperimento 3: Variazioni al numero di termiti nel sistema
+### Esperimento 3: Variazioni al numero di termiti nel sistema
 
 Si è misurato il tempo necessario perchè quantità le termiti formassero 6 raggruppamenti di cibo al variare delle quantità di termiti.
 
@@ -110,7 +110,7 @@ Effettuando gli esperimenti, si è verificata questa ipotesi: si è notata una d
 
 Si è riusciti a determinare il valore della costante (con un margine di errore): esso è **~79875 unità di lavoro**.
 
-##### Dati sperimentali
+#### Dati sperimentali
 
 | Termiti | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 | Run 7 | Run 8 | Run 9 | Run 10 | Media tick | Media unità di lavoro |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -120,17 +120,17 @@ Si è riusciti a determinare il valore della costante (con un margine di errore)
 | 500 | 180 | 160 | 120 | 120 | 180 | 200 | 160 | 240 | 160 | 120 | **164** | **82000** |
 | _Media_ | | | | | | | | | | | | _**79875**_ |
 
-##### Grafico
+#### Grafico
 
 ![](img/grafico-1-3.png)
 
-#### Esperimento 4: Variazioni al valore `angolo_virata`
+### Esperimento 4: Variazioni al valore `angolo_virata`
 
 Si sono misurati i **magazzini formatosi dopo 1000 tick** al variare del parametro `angolo_virata`.
 
 Dai dati sperimentali si nota che la variazione del numero dei magazzini è pressochè nulla; si può quindi dire che la variazione dell'angolo di virata non influenza il numero magazzini creati dalle termiti.
 
-##### Dati sperimentali
+#### Dati sperimentali
 
 |Angolo_virata|Valore medio magazzini| Run 1 | Run 2 | Run 3 | Run 4 | Run 5 |
 |---|---|---|---|---|---|---|
