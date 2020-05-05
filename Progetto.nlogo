@@ -7,7 +7,7 @@ to setup
   ;; distribuzione casuale di cibo
   ask patches
   [ if random-float 100 < densita_materiale
-    [ set pcolor yellow ] ]
+    [ set pcolor yellow ]]
 
   reset-ticks
   ;; distribuzione casuale di termiti
@@ -24,16 +24,20 @@ end
 
 
 to go
-
   ask turtles [cerca-cibo  appoggia-cibo ]
   tick
 end
 
 to cerca-cibo
 
-  ifelse pcolor = yellow
-  [set pcolor black   set color orange fd rg_inerzia]  ;ramo vero
-  [vaga cerca-cibo]  ; ramo falso
+; vago finchè non trovo cibo
+  while [ pcolor = black or not efficient? (true)][
+    vaga ]
+
+; Finito il while, ho trovato del cibo: lo raccolgo e mi allontano
+  set pcolor black
+  set color orange
+  fd rg_inerzia
 
 end
 
@@ -45,19 +49,53 @@ end
 
 
 to appoggia-cibo
-ifelse pcolor = black
-  [ set pcolor yellow
-    set color white
-    allontanati]
+  while [ pcolor != black or not efficient?(false)]
   [ vaga
-    appoggia-cibo ]
+  ]
+
+  set pcolor yellow
+  set color white
+  allontanati
+
 end
 
 to allontanati
-  rt random 360
-  fd rg_libera
-  if pcolor != black
-    [ allontanati]
+  let energy 10
+  while[ pcolor != black and not tired?(energy)]
+  [ rt random 360
+    fd rg_libera
+    set energy energy - (EnergyLostPerAction / 10)
+    set color energy
+  ]
+end
+
+to-report efficient? [needEmptyArea]
+; Boolean che dice se è efficiente eseguire l'azione che la evoca
+; needEmptyArea è un bool che mi definisce l'obiettivo tra:
+; - cercare una zona semi-vuota da cui prelevate cibo (true)
+; - cercare una zona semi-piena in cui appoggiare il cibo (false)
+
+  ;se non ho attivato la modalità efficiente, il bool è sempre soddisfatto
+  if not efficiency [report true]
+
+  ;altrimenti, entra in gioco il needEmptyArea
+  ifelse needEmptyArea
+  [ ;è considerata "vuota" un'area in cui ci sia meno del 40% di caselle con del cibo
+    report (count patches in-radius 2 with [pcolor != black] /
+    count patches in-radius 2 < 0.4)
+  ]
+  [ ;è considerata "piena" un'area in cui ci sia più del 40% di caselle con del cibo
+    report (count patches in-radius 2 with [pcolor != black] /
+    count patches in-radius 2 > 0.4)
+  ]
+end
+
+to-report tired? [energy]
+; Boolean che monitora l'energia rimasta alla termite
+
+  ; se non ho attivato la modalità tiredness, la formica avrà sempre energia sufficiente
+  ; altrimenti, controllo se l'energia rimasta è sufficiente
+  ifelse not tiredness [report false][report (energy < random-float 10)]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -81,8 +119,8 @@ GRAPHICS-WINDOW
 75
 -75
 75
-0
-0
+1
+1
 1
 ticks
 30.0
@@ -111,7 +149,7 @@ BUTTON
 62
 NIL
 Go
-NIL
+T
 1
 T
 OBSERVER
@@ -207,10 +245,47 @@ INPUTBOX
 174
 122
 numero_step
-100.0
+1000.0
 1
 0
 Number
+
+SWITCH
+13
+357
+195
+390
+Efficiency
+Efficiency
+1
+1
+-1000
+
+SWITCH
+13
+391
+196
+424
+Tiredness
+Tiredness
+0
+1
+-1000
+
+SLIDER
+13
+424
+196
+457
+EnergyLostPerAction
+EnergyLostPerAction
+1
+100
+20.0
+1
+1
+%
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
