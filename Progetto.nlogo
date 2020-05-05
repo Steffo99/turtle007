@@ -1,75 +1,91 @@
+globals [step carry groups]
+patches-own [id]
 to setup
   clear-all
-
-  set-default-shape turtles "bug"
-
-
-  ;; distribuzione casuale di cibo
-  ask patches
-  [ if random-float 100 < densita_materiale
-    [ set pcolor yellow ] ]
-
-  reset-ticks
-  ;; distribuzione casuale di termiti
-  create-turtles numero_termiti
-
- ask turtles [
-    set color white
-    setxy random-xcor random-ycor
-    set size 5  ;; più facile da vedere
+  crt n_termiti
+  ask turtles [set color white]
+  ask turtles [setxy random-xcor random-ycor]
+  ask turtles [set size 5]
+  ask turtles [set shape "bug"]
+  ask patches[
+    if random-float 100 < densita_cibo[
+      set pcolor yellow
+    ]
   ]
-
+  let counter 0
+  ask patches with [pcolor = yellow] [set id counter
+    set counter counter + 1
+  ;set plabel id
+  ]
+  set carry 0
   reset-ticks
 end
 
-
-to go
-
-  ask turtles [cerca-cibo  appoggia-cibo ]
-  tick
-end
-
-to cerca-cibo
-
-  ifelse pcolor = yellow
-  [set pcolor black   set color orange fd rg_inerzia]  ;ramo vero
-  [vaga cerca-cibo]  ; ramo falso
-
-end
-
-to vaga
-  lt random angolo_virata
-  rt random angolo_virata
+to roam
+  rt random virata
+  lt random virata
   fd 1
-end
-
-
-to appoggia-cibo
-ifelse pcolor = black
-  [ set pcolor yellow
-    set color white
-    allontanati]
-  [ vaga
-    appoggia-cibo ]
 end
 
 to allontanati
   rt random 360
-  fd rg_libera
-  if pcolor != black
-    [ allontanati]
+  lt random 360
+  fd libera
+  if pcolor = yellow [allontanati]
+end
+
+to locate-group
+  ask patches with [pcolor = yellow]
+  [let tmp max-one-of neighbors [id]
+    set id [id] of tmp
+  ;set plabel id
+  ]
+  let _unique remove-duplicates [id] of patches
+  set groups length _unique
+  ask patches with [pcolor = black and id != -1] [set id -1]
+end
+
+to appoggia-cibo
+  ifelse pcolor = black
+  [ set pcolor yellow
+    set color white
+    allontanati]
+  [ roam
+    appoggia-cibo]
+end
+
+to cerca-cibo
+  ifelse pcolor = yellow
+  [ set pcolor black
+    set color orange
+    fd inerzia
+    appoggia-cibo
+    ask patch-here [set id -1]][
+  roam
+    cerca-cibo]
+end
+
+to go ;; questa è una procedura turtle
+  ifelse step < max_step or max_step = 0 [
+    ask turtles [cerca-cibo]
+    locate-group
+    ;plotxy step groups
+    set step step + 1
+    tick
+  ]
+  [ user-message (word "La simulazione ha raggiunto i " max_step " passi.")]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-671
-472
+206
+13
+879
+687
 -1
 -1
-3.0
+4.404
 1
-10
+1
 1
 1
 1
@@ -88,12 +104,12 @@ ticks
 30.0
 
 BUTTON
-23
-10
-97
-62
-NIL
+7
+14
+198
+47
 Setup
+setup
 NIL
 1
 T
@@ -105,13 +121,13 @@ NIL
 1
 
 BUTTON
-97
-10
-174
-62
-NIL
+7
+54
+101
+87
 Go
-NIL
+go
+T
 1
 T
 OBSERVER
@@ -122,12 +138,12 @@ NIL
 1
 
 BUTTON
-23
-62
-97
-122
+105
+54
+198
+87
 Step
-let i 1\nwhile [i < numero_step]\n[\n  go\n  set i i + 1\n]\n
+go
 NIL
 1
 T
@@ -137,117 +153,192 @@ NIL
 NIL
 NIL
 1
-
-INPUTBOX
-13
-227
-103
-287
-rg_inerzia
-20.0
-1
-0
-Number
-
-INPUTBOX
-103
-227
-195
-287
-rg_libera
-20.0
-1
-0
-Number
 
 SLIDER
-11
-134
-197
-167
-densita_materiale
-densita_materiale
+7
+93
+198
+126
+n_termiti
+n_termiti
+0
+1000
+352.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+7
+133
+198
+166
+densita_cibo
+densita_cibo
 0
 100
-20.0
-5
+52.0
 1
-NIL
+1
+%
 HORIZONTAL
 
 INPUTBOX
-13
-287
-195
-347
-angolo_virata
-100.0
+8
+171
+199
+231
+inerzia
+10.0
 1
 0
 Number
+
+INPUTBOX
+9
+236
+200
+296
+libera
+10.0
+1
+0
+Number
+
+INPUTBOX
+9
+301
+199
+361
+virata
+10.0
+1
+0
+Number
+
+MONITOR
+9
+368
+199
+413
+Passi
+step
+0
+1
+11
 
 SLIDER
-11
-167
-197
-200
-numero_termiti
-numero_termiti
-50
+9
+420
+199
+453
+max_step
+max_step
+0
 1000
-100.0
-50
+0.0
+1
 1
 NIL
 HORIZONTAL
 
-INPUTBOX
-97
-62
-174
-122
-numero_step
-100.0
+PLOT
+885
+13
+1799
+686
+Numero di gruppi (circa)
+Gruppi
+Tempo
+0.0
+1000.0
+0.0
+1000.0
+true
+false
+"" ""
+PENS
+"pen-0" 1.0 0 -16777216 true "" "plotxy step groups"
+
+MONITOR
+10
+463
+198
+508
+NIL
+groups
+17
 1
-0
-Number
+11
+
+BUTTON
+10
+517
+198
+550
+Mostra i patch-id
+ask patches [\nset plabel id\n]
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+10
+556
+198
+589
+Nascondi i patch-id
+ask patches [set plabel \" \"]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+10
+592
+201
+690
+Il numero di Gruppi contiene anche il gruppo \"vuoto\", ovvero le zone nere del mondo. Per esaminare i Patch-Id, si consiglia di utilizzare la 3d-view e zoomare manualmente. La misurazione dei gruppi non è perfetta, e può esserci un errore pari a 1.
+11
+0.0
+1
 
 @#$#@#$#@
-## WHAT IS IT?
+## Che cos'è?
 
-(a general understanding of what the model is trying to show or explain)
+Il modello rappresenta il comportamento delle termiti in un ambiente a cibo sparso. 
+Serve per mostrare la capacità organizzativa dell'intelligenza-sciame nel creare mucchi di cibo.
 
-## HOW IT WORKS
+## Come funziona
 
-(what rules the agents use to create the overall behavior of the model)
+Il comando go avvia una procedura mediante ask, che manda le turtle alla ricerca di cibo. Se il cibo viene trovato, si allontanano da dove l'hanno trovato e lo posano appena possibile in un posto vuoto, per poi allontanarsi. Se viene superato il numero massimo di passi, il modello si arresta.
 
-## HOW TO USE IT
+## Come si usa
 
-(how to use the model, including a description of each of the items in the Interface tab)
+Inserire i parametri mediante l'interfaccia. I parametri sono:
+- n_termiti: numero di turtle da generare
+- densita_cibo: percentuale del cibo nella mappa
+- inerzia: movimento di base della termite quando ha trovato il cibo
+- libera: distanza che la termite percorre per allontanarsi dal cibo
+- virata: massimo angolo di rotazione in gradi
+- max_step: passi massimi prima di poter arrestare la simulazione (0 = illimitato)
 
-## THINGS TO NOTICE
+## Credits
 
-(suggested things for the user to notice while running the model)
-
-## THINGS TO TRY
-
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+Lorenzo Balugani
 @#$#@#$#@
 default
 true
