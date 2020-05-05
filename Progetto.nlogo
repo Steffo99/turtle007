@@ -1,6 +1,8 @@
 breed [ants ant]
 patches-own [pheromone food nest distance-from-nest]
-ants-own [carrying-food]
+ants-own [carrying-food hunger]
+
+globals [food-in-nest]
 
 to setup
   clear-all
@@ -42,6 +44,7 @@ to setup-nest
   ask patches [
     p-setup-nest
   ]
+  set food-in-nest 0
 end
 
 to p-setup-nest
@@ -76,6 +79,7 @@ end
 to t-setup-ant
   set color ant-color
   set carrying-food 0
+  set hunger 0
   setxy nest-x nest-y
   fd nest-size
 end
@@ -160,6 +164,7 @@ end
 
 to t-drop-food
   set carrying-food 0
+  set food-in-nest food-in-nest + 1
   rt 180
 end
 
@@ -175,10 +180,27 @@ to t-add-pheromone
   ]
 end
 
+to t-set-hunger
+  if random-float 100 < hunger-increase-pct[
+  set hunger hunger + hunger-per-tick
+  ]
+end
+
+to t-try-eat-food
+  if carrying-food = 1[
+    set hunger 0
+    set carrying-food 0
+  ]
+  if t-is-over-nest and food-in-nest > 0[
+    set hunger 0
+    set food-in-nest food-in-nest - 1]
+end
+
 to t-work
-  ifelse carrying-food = 1 [
+  ifelse carrying-food = 1 or (hunger >= hunger-threshold and enable-hunger)[
     t-rotate-nest
-    t-add-pheromone
+    if carrying-food = 1[
+      t-add-pheromone]
   ][
     t-rotate-pheromone
   ]
@@ -187,6 +209,18 @@ to t-work
   fd 1
   t-try-pick-up-food
   t-try-drop-food
+  t-set-hunger
+  if hunger >= hunger-threshold and enable-hunger [
+    t-try-eat-food
+    if hunger >= hunger-max [
+      die]
+  ]
+end
+
+to p-respawn-food
+  if random-float 100 < food-respawn-pct[
+    setup-food
+  ]
 end
 
 to go
@@ -196,6 +230,9 @@ to go
   diffuse pheromone (diffusion-pct / 100)
   ask patches [p-paint-patch]
   ask ants [t-paint-ant]
+  if enable-food-respawn and ticks mod food-ticks = 0[
+    p-respawn-food
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -674,6 +711,140 @@ random-angle
 1
 0
 Number
+
+SWITCH
+10
+775
+180
+808
+enable-hunger
+enable-hunger
+0
+1
+-1000
+
+SWITCH
+185
+775
+355
+808
+enable-food-respawn
+enable-food-respawn
+0
+1
+-1000
+
+INPUTBOX
+1195
+90
+1280
+150
+food-ticks
+1500.0
+1
+0
+Number
+
+SLIDER
+1285
+90
+1322
+280
+food-respawn-pct
+food-respawn-pct
+0
+100
+0.0
+1
+1
+%
+VERTICAL
+
+INPUTBOX
+1195
+155
+1280
+215
+hunger-per-tick
+0.1
+1
+0
+Number
+
+INPUTBOX
+1195
+220
+1280
+280
+hunger-threshold
+30.0
+1
+0
+Number
+
+INPUTBOX
+1195
+285
+1280
+345
+hunger-max
+35.0
+1
+0
+Number
+
+PLOT
+1145
+575
+1345
+725
+Food in Nest
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot food-in-nest"
+
+PLOT
+1350
+575
+1550
+725
+Ants
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Alive" 1.0 0 -2674135 true "" "plot count turtles"
+"Dead" 1.0 0 -16777216 true "" "plot (ants-qty - count turtles)"
+"Starving" 1.0 0 -817084 true "" "plot count turtles with [hunger > hunger-threshold]"
+
+SLIDER
+1325
+91
+1362
+281
+hunger-increase-pct
+hunger-increase-pct
+0
+100
+21.0
+1
+1
+%
+VERTICAL
 
 @#$#@#$#@
 ## WHAT IS IT?
