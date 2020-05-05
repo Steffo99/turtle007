@@ -2,7 +2,7 @@ breed [ants ant]
 patches-own [pheromone food nest distance-from-nest]
 ants-own [carrying-food hunger]
 
-globals [food-in-nest]
+globals [food-in-nest born]
 
 to setup
   clear-all
@@ -45,6 +45,7 @@ to setup-nest
     p-setup-nest
   ]
   set food-in-nest 0
+  set born 0
 end
 
 to p-setup-nest
@@ -223,6 +224,16 @@ to p-respawn-food
   ]
 end
 
+to birth
+  create-ants 1 [set color ant-color
+  set carrying-food 0
+  set hunger 0
+  setxy nest-x nest-y
+    fd nest-size]
+  set food-in-nest food-in-nest - ant-food-cost
+  set born born + 1
+end
+
 to go
   tick
   ask ants [t-work]
@@ -232,6 +243,9 @@ to go
   ask ants [t-paint-ant]
   if enable-food-respawn and ticks mod food-ticks = 0[
     p-respawn-food
+  ]
+  if enable-birth and (food-in-nest - ant-food-cost) >= food-surplus-threshold[
+    birth
   ]
 end
 @#$#@#$#@
@@ -735,35 +749,35 @@ enable-food-respawn
 -1000
 
 INPUTBOX
-1195
+1240
 90
-1280
+1325
 150
 food-ticks
-1500.0
+200.0
 1
 0
 Number
 
 SLIDER
-1285
+1330
 90
-1322
+1367
 280
 food-respawn-pct
 food-respawn-pct
 0
 100
-0.0
+48.0
 1
 1
 %
 VERTICAL
 
 INPUTBOX
-1195
+1240
 155
-1280
+1325
 215
 hunger-per-tick
 0.1
@@ -772,9 +786,9 @@ hunger-per-tick
 Number
 
 INPUTBOX
-1195
+1240
 220
-1280
+1325
 280
 hunger-threshold
 30.0
@@ -783,9 +797,9 @@ hunger-threshold
 Number
 
 INPUTBOX
-1195
+1240
 285
-1280
+1325
 345
 hunger-max
 35.0
@@ -828,14 +842,14 @@ true
 "" ""
 PENS
 "Alive" 1.0 0 -2674135 true "" "plot count turtles"
-"Dead" 1.0 0 -16777216 true "" "plot (ants-qty - count turtles)"
+"Dead" 1.0 0 -16777216 true "" "plot ((ants-qty + born) - count turtles)"
 "Starving" 1.0 0 -817084 true "" "plot count turtles with [hunger > hunger-threshold]"
 
 SLIDER
-1325
-91
-1362
-281
+1370
+90
+1407
+280
 hunger-increase-pct
 hunger-increase-pct
 0
@@ -845,6 +859,39 @@ hunger-increase-pct
 1
 %
 VERTICAL
+
+SWITCH
+360
+775
+530
+808
+enable-birth
+enable-birth
+0
+1
+-1000
+
+INPUTBOX
+1240
+350
+1410
+410
+food-surplus-threshold
+1000.0
+1
+0
+Number
+
+INPUTBOX
+1330
+285
+1410
+345
+ant-food-cost
+10.0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
