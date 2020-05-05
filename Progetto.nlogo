@@ -1,12 +1,15 @@
 breed [ants ant]
-patches-own [pheromone food nest distance-from-nest]
+patches-own [pheromone food poison nest distance-from-nest]
 ants-own [carrying-food]
 
 to setup
   clear-all
   reset-ticks
-  setup-nest
+  ask patches [
+    p-setup-nest
+  ]
   setup-food
+  setup-poison
   setup-ants
   ask patches [p-paint-patch]
   ask ants [t-paint-ant]
@@ -14,33 +17,25 @@ end
 
 to p-paint-patch
   set pcolor black
-  if show-pheromone [
-    set pcolor scale-color pheromone-color pheromone pheromone-min pheromone-max
-  ]
-  if show-distance [
-    ; 35 * sqrt(2) = ~50
-    set pcolor scale-color distance-color distance-from-nest 0.1 50
-  ]
-  if show-food and food = 1 [
+  ifelse pheromone >= 0
+    [ set pcolor scale-color pheromone-color pheromone 0 pheromone-max]
+    [ set pcolor scale-color poison-color pheromone 0 pheromone-min]
+  if  food = 1 [
     set pcolor food-color
   ]
-  if show-nest and nest = 1 [
+  if  nest = 1 [
     set pcolor nest-color
+  ]
+  if  poison = 1 [
+    set pcolor poison-color
   ]
 end
 
 to t-paint-ant
-  set hidden? not show-ants
   ifelse carrying-food = 1 [
     set color ant-carrying-color
   ][
     set color ant-color
-  ]
-end
-
-to setup-nest
-  ask patches [
-    p-setup-nest
   ]
 end
 
@@ -64,6 +59,19 @@ end
 to p-add-food [x y s]
   if (distancexy x y) < s [
     set food 1
+  ]
+end
+
+to setup-poison
+  ask patches [
+    p-add-poison poison-x-1 poison-y-1 poison-size-1
+    p-add-poison poison-x-2 poison-y-2 poison-size-2
+  ]
+end
+
+to p-add-poison [x y s]
+  if (distancexy x y) < s [
+    set poison 1
   ]
 end
 
@@ -101,7 +109,7 @@ to t-rotate-pheromone
   let pleft t-pheromone-left
   let pcenter t-pheromone-center
   let pright t-pheromone-right
-  if (pleft >= 0.05 and pleft <= 2) or (pcenter >= 0.05 and pcenter <= 2) or (pright >= 0.05 and pright <= 2)[
+  if ((pleft >= 0.05 and pleft <= 2) or (pleft <= -0.05 and pleft >= -2)) or ((pcenter >= 0.05 and pcenter <= 2) or (pcenter <= -0.05 and pcenter >= -2)) or ((pright >= 0.05 and pright <= 2) or (pright <= -0.05 and pright >= -2))[
   ifelse pleft > pright and pleft > pcenter [
     left 45
   ][
@@ -140,6 +148,10 @@ to-report t-is-over-food
   report ([food] of patch-here = 1)
 end
 
+to-report t-is-over-poison
+  report ([poison] of patch-here = 1)
+end
+
 to-report t-is-over-nest
   report ([nest] of patch-here = 1)
 end
@@ -155,6 +167,21 @@ end
 to t-try-pick-up-food
   if carrying-food = 0 and t-is-over-food [
     t-pick-up-food
+  ]
+end
+
+to t-pick-up-poison
+  ask patch-here [
+    set poison 0
+  ]
+  t-subtract-pheromone
+  die
+  rt 180
+end
+
+to t-try-pick-up-poison
+  if carrying-food = 0 and t-is-over-poison [
+    t-pick-up-poison
   ]
 end
 
@@ -175,6 +202,12 @@ to t-add-pheromone
   ]
 end
 
+to t-subtract-pheromone
+  ask patch-here [
+    set pheromone pheromone - 240
+  ]
+end
+
 to t-work
   ifelse carrying-food = 1 [
     t-rotate-nest
@@ -186,6 +219,7 @@ to t-work
   right random random-angle
   fd 1
   t-try-pick-up-food
+  t-try-pick-up-poison
   t-try-drop-food
 end
 
@@ -201,11 +235,11 @@ end
 GRAPHICS-WINDOW
 8
 10
-726
-729
+584
+587
 -1
 -1
-10.0
+8.0
 1
 10
 1
@@ -226,9 +260,9 @@ ticks
 30.0
 
 BUTTON
-730
+590
 10
-860
+735
 43
 NIL
 setup
@@ -243,10 +277,10 @@ NIL
 1
 
 SLIDER
-730
-115
-902
-148
+590
+100
+762
+133
 nest-size
 nest-size
 1
@@ -258,10 +292,10 @@ patches
 HORIZONTAL
 
 INPUTBOX
-905
-90
-955
-150
+765
+75
+815
+135
 nest-x
 0.0
 1
@@ -269,10 +303,10 @@ nest-x
 Number
 
 INPUTBOX
-960
-90
-1010
-150
+820
+75
+870
+135
 nest-y
 0.0
 1
@@ -280,32 +314,32 @@ nest-y
 Number
 
 INPUTBOX
-1015
-90
-1100
-150
+875
+75
+960
+135
 nest-color
-12.0
+23.0
 1
 0
 Color
 
 INPUTBOX
-1015
-155
-1100
-215
+875
+140
+960
+200
 food-color
-43.0
+44.0
 1
 0
 Color
 
 INPUTBOX
-905
-155
-955
-215
+765
+140
+815
+200
 food-x-1
 21.0
 1
@@ -313,10 +347,10 @@ food-x-1
 Number
 
 INPUTBOX
-960
-155
-1010
-215
+820
+140
+870
+200
 food-y-1
 0.0
 1
@@ -324,10 +358,10 @@ food-y-1
 Number
 
 INPUTBOX
-905
-220
-955
-280
+765
+205
+815
+265
 food-x-2
 -21.0
 1
@@ -335,10 +369,10 @@ food-x-2
 Number
 
 INPUTBOX
-960
-220
-1010
-280
+820
+205
+870
+265
 food-y-2
 -21.0
 1
@@ -346,10 +380,10 @@ food-y-2
 Number
 
 INPUTBOX
-905
-285
-955
-345
+765
+270
+815
+330
 food-x-3
 -28.0
 1
@@ -357,10 +391,10 @@ food-x-3
 Number
 
 INPUTBOX
-960
-285
-1010
-345
+820
+270
+870
+330
 food-y-3
 28.0
 1
@@ -368,10 +402,10 @@ food-y-3
 Number
 
 SLIDER
-730
-180
-902
-213
+590
+165
+762
+198
 food-size-1
 food-size-1
 0
@@ -383,10 +417,10 @@ patches
 HORIZONTAL
 
 SLIDER
-730
-245
-902
-278
+590
+230
+762
+263
 food-size-2
 food-size-2
 0
@@ -398,10 +432,10 @@ patches
 HORIZONTAL
 
 SLIDER
-730
-310
-902
-343
+590
+295
+762
+328
 food-size-3
 food-size-3
 0
@@ -413,20 +447,20 @@ patches
 HORIZONTAL
 
 TEXTBOX
-760
-465
-910
-483
+620
+490
+770
+508
 NIL
 11
 0.0
 1
 
 SLIDER
-730
-435
-902
-468
+590
+460
+762
+493
 diffusion-pct
 diffusion-pct
 0
@@ -438,10 +472,10 @@ diffusion-pct
 HORIZONTAL
 
 SLIDER
-730
-470
-902
-503
+590
+495
+762
+528
 evaporation-pct
 evaporation-pct
 0
@@ -453,9 +487,9 @@ evaporation-pct
 HORIZONTAL
 
 BUTTON
-730
+590
 45
-793
+660
 78
 tick
 go
@@ -470,9 +504,9 @@ NIL
 1
 
 BUTTON
-795
+665
 45
-858
+735
 78
 NIL
 go
@@ -487,54 +521,54 @@ NIL
 1
 
 INPUTBOX
-905
-350
-1010
-410
+765
+10
+870
+70
 ants-qty
-1000.0
+100.0
 1
 0
 Number
 
 INPUTBOX
-1015
-350
-1100
-410
+875
+10
+960
+70
 ant-color
-15.0
+3.0
 1
 0
 Color
 
 INPUTBOX
-1105
-350
-1190
-410
+965
+10
+1050
+70
 ant-carrying-color
-18.0
+6.0
 1
 0
 Color
 
 INPUTBOX
-1105
-415
-1205
-475
+965
+465
+1065
+525
 pheromone-min
-0.1
+-5.0
 1
 0
 Number
 
 INPUTBOX
-1105
-480
-1205
-540
+1070
+465
+1170
+525
 pheromone-max
 5.0
 1
@@ -542,10 +576,10 @@ pheromone-max
 Number
 
 INPUTBOX
-1015
-415
-1100
-475
+875
+465
+960
+525
 pheromone-color
 65.0
 1
@@ -553,10 +587,10 @@ pheromone-color
 Color
 
 PLOT
-735
-575
-935
-725
+1055
+10
+1255
+160
 Ants with food
 Ticks
 Ants
@@ -571,10 +605,10 @@ PENS
 "with-food" 1.0 0 -1069655 true "" "plot count ants with [carrying-food = 1]"
 
 PLOT
-940
-575
-1140
-725
+1055
+165
+1255
+315
 Patches with food
 Ticks
 Patches
@@ -588,89 +622,109 @@ false
 PENS
 "default" 1.0 0 -7171555 true "" "plot count patches with [food = 1]"
 
-TEXTBOX
-865
-10
-1380
-76
-TODO: nuovi grafici e aggiunte belline!
-11
-0.0
-1
-
-SWITCH
-360
-735
-530
-768
-show-pheromone
-show-pheromone
-0
-1
--1000
-
-SWITCH
-185
-735
-355
-768
-show-ants
-show-ants
-0
-1
--1000
-
-SWITCH
-10
-735
-180
-768
-show-nest
-show-nest
-0
-1
--1000
-
-SWITCH
-535
-735
-705
-768
-show-food
-show-food
-0
-1
--1000
-
 INPUTBOX
-1105
-90
-1190
-150
+965
+75
+1050
+135
 distance-color
 135.0
 1
 0
 Color
 
-SWITCH
-710
-735
-880
-768
-show-distance
-show-distance
-1
-1
--1000
-
 INPUTBOX
-905
-415
-1010
-475
+765
+465
+870
+525
 random-angle
 45.0
+1
+0
+Number
+
+INPUTBOX
+875
+335
+960
+395
+poison-color
+15.0
+1
+0
+Color
+
+SLIDER
+590
+360
+760
+393
+poison-size-1
+poison-size-1
+0
+15
+4.0
+1
+1
+patches
+HORIZONTAL
+
+INPUTBOX
+765
+335
+815
+395
+poison-x-1
+13.0
+1
+0
+Number
+
+INPUTBOX
+820
+335
+870
+395
+poison-y-1
+-18.0
+1
+0
+Number
+
+SLIDER
+590
+420
+760
+453
+poison-size-2
+poison-size-2
+0
+15
+4.0
+1
+1
+NIL
+HORIZONTAL
+
+INPUTBOX
+765
+400
+815
+460
+poison-x-2
+-14.0
+1
+0
+Number
+
+INPUTBOX
+820
+400
+870
+460
+poison-y-2
+14.0
 1
 0
 Number
