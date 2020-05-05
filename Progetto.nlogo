@@ -1,73 +1,125 @@
-to setup
-  clear-all
+; Sì, è termite anche in inglese
+breed [termites termite]
 
-  set-default-shape turtles "bug"
-
-
-  ;; distribuzione casuale di cibo
-  ask patches
-  [ if random-float 100 < densita_materiale
-    [ set pcolor yellow ] ]
-
-  reset-ticks
-  ;; distribuzione casuale di termiti
-  create-turtles numero_termiti
-
- ask turtles [
-    set color white
-    setxy random-xcor random-ycor
-    set size 5  ;; più facile da vedere
-  ]
-
-  reset-ticks
+; Colore patch:
+to-report patch-empty-color
+  report 0
 end
 
+to-report patch-food-color
+  report 4
+end
+
+to-report is-on-food
+  report pcolor = patch-food-color
+end
+
+; Colore termiti
+to-report termite-color
+  report [64 0 0]
+end
+
+to-report termite-with-food-color
+  report [255 0 0]
+end
+
+to-report has-food
+  report color = termite-with-food-color
+end
+
+; Termite: raccogli cibo
+to pick-up-food
+  ; Raccogli il cibo
+  set pcolor patch-empty-color
+  set color termite-with-food-color
+end
+
+; Termite: lascia per terra cibo
+to drop-food
+  ; Lascia per terra il cibo
+  set pcolor patch-food-color
+  set color termite-color
+end
+
+; Termite: scatta in una direzione casuale
+to dash [amount]
+  ; Se ruota il programma non funziona più. Perchè?
+  rt random 360
+  fd amount
+end
+
+to setup
+  ; Ricrea la situazione iniziale
+  clear-all
+  reset-ticks
+
+  ; Scegli l'immagine per le turtle
+  set-default-shape termites "bug"
+
+  ; Crea distribuzione casuale di cibo
+  ask patches [
+    if random-float 100 < food-density [
+      set pcolor patch-food-color
+    ]
+  ]
+
+  ; Crea termiti e inizializzale
+  create-termites termites-amount
+  ask termites [
+    ; Bianche
+    set color termite-color
+    ; In posizione casuali
+    setxy random-xcor random-ycor
+    ; Grandi
+    set size 5
+  ]
+end
 
 to go
-
-  ask turtles [cerca-cibo  appoggia-cibo ]
+  ; Fai lavorare le termiti
+  ask termites [
+    work
+  ]
+  ; Avanza di un tick quando tutte le termiti hanno fatto
   tick
 end
 
-to cerca-cibo
-
-  ifelse pcolor = yellow
-  [set pcolor black   set color orange fd rg_inerzia]  ;ramo vero
-  [vaga cerca-cibo]  ; ramo falso
-
+; Termite: lavora!
+to work
+  ; Se hai cibo, prova a lasciarlo per terra
+  if not is-on-food and has-food [
+    drop-food
+    while [is-on-food] [
+      dash drop-dash
+    ]
+  ]
+  ; Vaga
+  roam
+  ; Raccogli il cibo se ci sei sopra
+  if is-on-food and not has-food [
+    pick-up-food
+    while [not is-on-food] [
+      dash pickup-dash
+    ]
+  ]
 end
 
-to vaga
-  lt random angolo_virata
-  rt random angolo_virata
+to roam
+  ; Girati in una direzione casuale
+  lt random turn-angle
+  rt random turn-angle
+  ; Avanza di 1
   fd 1
-end
-
-
-to appoggia-cibo
-ifelse pcolor = black
-  [ set pcolor yellow
-    set color white
-    allontanati]
-  [ vaga
-    appoggia-cibo ]
-end
-
-to allontanati
-  rt random 360
-  fd rg_libera
-  if pcolor != black
-    [ allontanati]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-671
-472
+822
+623
 -1
 -1
-3.0
+4.0
 1
 10
 1
@@ -88,29 +140,12 @@ ticks
 30.0
 
 BUTTON
-23
-10
-97
-62
+14
+13
+200
+46
 NIL
-Setup
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-97
-10
-174
-62
-NIL
-Go
+setup
 NIL
 1
 T
@@ -122,12 +157,29 @@ NIL
 1
 
 BUTTON
-23
-62
-97
-122
-Step
-let i 1\nwhile [i < numero_step]\n[\n  go\n  set i i + 1\n]\n
+14
+48
+137
+81
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+140
+48
+200
+81
+tick
+go
 NIL
 1
 T
@@ -139,78 +191,71 @@ NIL
 1
 
 INPUTBOX
-13
-227
-103
-287
-rg_inerzia
+15
+189
+105
+249
+pickup-dash
 20.0
 1
 0
 Number
 
 INPUTBOX
-103
-227
-195
-287
-rg_libera
+108
+189
+200
+249
+drop-dash
 20.0
 1
 0
 Number
 
 SLIDER
-11
-134
-197
-167
-densita_materiale
-densita_materiale
+14
+83
+200
+116
+food-density
+food-density
 0
 100
 20.0
-5
 1
-NIL
+1
+%
 HORIZONTAL
-
-INPUTBOX
-13
-287
-195
-347
-angolo_virata
-100.0
-1
-0
-Number
 
 SLIDER
-11
-167
-197
+14
+116
 200
-numero_termiti
-numero_termiti
-50
+149
+termites-amount
+termites-amount
+0
 1000
-100.0
+50.0
 50
 1
-NIL
+termites
 HORIZONTAL
 
-INPUTBOX
-97
-62
-174
-122
-numero_step
+SLIDER
+14
+149
+200
+182
+turn-angle
+turn-angle
+0
+360
 100.0
 1
-0
-Number
+1
+°
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
