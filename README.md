@@ -1,60 +1,102 @@
-# Da insiemi di agenti a sistemi swarm adattativi
+# `2-metabolismo`
 
-_Di [Balugani Lorenzo](https://github.com/LBindustries), [Calzolari Chiara](https://github.com/Cookie-CHR) e [Pigozzi Stefano](https://github.com/Steffo99)_
-
-## Descrizione
-
-Il progetto complessivo consiste in una **serie di realizzazioni di un modello multiagente** e di esperimenti su di esso; ogni nuova versione del modello è più raffinata della precedente. La versione iniziale non è un sistema collettivo; la versione finale realizza un sistema collettivo i cui elementi sono capaci di evolvere e di adattarsi all’ambiente.
+Questo progetto estende il progetto [`2-base`](https://github.com/Steffo99/turtle007/tree/2-base) aggiungendo nuovi parametri alle formiche del sistema.
 
 ## Ambiente
 
-L’ambiente è un [toroide](https://it.wikipedia.org/wiki/Toro_(geometria)) composto da 150x150 patch.
+### Ricomparsa del cibo
 
-Dopo il `setup` dell'ambiente, questo conterrà 3 gruppi di cibo, un nido e un numero configurabile di formiche.
+Se attivata tramite lo switch `food-respawn`, questa feature fa ricomparire il cibo all'interno dell'ambiente dopo `food-r-*` tick (con un offset di `food-o-*` tick).
 
-### Formiche
+```lisp
+to try-respawn-food-*
+  if ticks mod food-r-* = food-o-* [
+    add-food-*
+  ]
+end
+```
 
-Dopo il `setup`, nell'ambiente saranno presenti un numero configurabile di formiche, 3 ammassi di cibo e un nido (la posizione di queste entità può essere modificata dall'utente). I colori delle formiche (che trasportano cibo o meno), del cibo e del nido possono essere modificati dall'utente.
+_L'asterisco indica il numero della pila di cibo, da 1 a 3._
 
-Esse (una alla volta, in ordine casuale) effettueranno ad ogni `tick` le seguenti azioni: 
+### Velocità delle formiche
 
-1. Se la formica trasporta del cibo, si orienta verso il nido e rilascia feromoni.
-2. Se la formica non trasporta del cibo, si orienta verso una possibile fonte di feromoni. Se il feromone percepito non è nell'intervallo 0.05-2 viene ignorato.
-3. La formica si ruota a destra e a sinistra di angolo casuale (il cui massimo può venire scelto dall'utente) e si muove avanti di 1.
-4. La formica tenta di prendere del cibo da terra. Se c'è del cibo e non ne sta trasportando altro, lo raccoglie, girandosi poi di 180°.
-5. La formica tenta di appoggiare del cibo a terra. Se trasporta del cibo e si trova sopra il nido, lo deposita, girandosi poi di 180°.  
+Alle formiche è stato aggiunto il parametro `speed`.
 
-Le patch (una alla volta, in ordine casuale) effetuano ad ogni `tick` le seguenti azioni:
+```lisp
+ants-own [speed]
+```
 
-1. Le patch fanno evaporare il ferormone (il quale viene poi diffuso nel go).
-2. In base alla configurazione, le patch vengono colorate per mostrare:
-    a. Se viene attivato lo switch `show-pheromone`, viene mostrato il feromone.
-    b. Se viene attiato lo switch `show-distance`, viene mostrata la distanza della patch dal nido.
-    c. Se viene attivato lo switch `show-food`, viene mostrato il cibo.
-    d. Se viene attivato lo switch `show-nest`, viene mostrato il nido.
+Esso è inizializzato a un **numero intero casuale** tra `min-speed` (1) e `max-speed` (2) al momento di creazione della formica, e rappresenta quante volte una formica può agire in un tick.
 
+```lisp
+repeat speed [
+    fd 1
+    t-try-pick-up-food
+    if t-try-drop-food [
+        t-resupply
+    ]
+]
+```
 
-## Dinamica del sistema
+### Metabolismo delle formiche
 
-Le formiche, ad ogni `tick`, in base a ciò che trasportano, cercano o di prendere del cibo o di portarlo verso il nest. Sulla via di ritorno al nest, le formiche rilasciano feromone, che spinge altre formiche a risalirlo per giungere quindi alla fonte di cibo.
-L'ambiente gioca un ruolo importante dal momento che, facendo evaporare i feromoni, elimina vecchi percorsi che portano a fonti di cibo esaurite.
+Alle formiche sono stati aggiunti i parametri `metabolism` e `hunger`.
+
+```lisp
+ants-own [metabolism hunger]
+```
+
+Il parametro `hunger` rappresenta quanta "fame" ha una formica; alla creazione, le formiche partiranno con `max-hunger` (400) punti.
+
+Ogni tick, l'`hunger` di ogni formica perde `metabolism` punti, che saranno ripristinati a `max-hunger` solo se la formica porterà una patch di cibo al formicaio.
+
+Se una formica scende sotto 1 punto `hunger`, essa morirà, e un'altra sarà creata nel nido al suo posto con parametri diversi.
+
+```lisp
+to t-consume-food
+  set hunger hunger - metabolism
+  if hunger <= 0 [
+    t-die
+  ]
+end
+
+to t-resupply
+  set hunger max-hunger
+end
+
+to t-die
+  set ant-deaths ant-deaths + 1
+  set ants-to-respawn ants-to-respawn + 1
+  die
+end
+
+to respawn-ants
+  create-ants ants-to-respawn [t-setup-ant]
+  set ants-to-respawn 0
+end
+```
 
 ## Feedback del sistema
 
-Nel sistema sono presenti due tipi di feedback:
-- <span style="background-color: lightgreen; color: darkgreen;">**Positivo**: Più intensa e recente è la traccia di feromone, più le formiche contribuiranno ad aumentarne l'intensità tornando dalla fonte di cibo.
-- <span style="background-color: lightcoral; color: darkred;">**Negativo**: Con l'esaurimento della fonte di cibo, il feromone viene a mancare, cancellando un percorso non più produttivo.
+In aggiunta ai feedback precedenti, in questo progetto abbiamo nuovi feedback:
 
-## Esperimenti
+- <span style="background-color: lightcoral; color: darkred;">**Negativo**: Le formiche con `metabolism` troppo alto o `speed` troppo bassa per consegnare cibo al formicaio in tempo moriranno, lasciando il posto a nuove formiche con parametri diversi.</span>
+- <span style="background-color: lightgreen; color: darkgreen;">**Positivo**: La casualità dei parametri delle nuove formiche favorirà quelle con parametri più adeguati all'ambiente.</span>
 
-TBD
+## Dinamica del sistema
 
-## Branches
+Le formiche continueranno a portare cibo al formicaio all'infinito; le meno adeguate di esse moriranno, mentre le più adeguate continueranno a vivere.
 
-Variazioni al modello sono visibili nei branch di questo repository.
+Con il progredire dei tick, ogni parametro avrà un valore che sarà prevalente nelle formiche: esso sarà il valore ideale del parametro nell'ambiente corrente.
 
-In particolare, si evidenziano i branch:
+## Osservazioni
 
-- [`2-poison`](https://github.com/Steffo99/turtle007/tree/2-poison), una versione del modello che include anche una sorgente di veleno.
-- [`2-ant-apocalypse`](https://github.com/Steffo99/turtle007/tree/2-ant-apocalypse), una versione del modello che rende necessario alle formiche di nutrirsi, pena la morte.
-- [`2-death-and-rebirth`](https://github.com/Steffo99/turtle007/tree/2-death-and-rebirth), una versione del modello che rende necessario alle formiche di nutrirsi, pena la morte, ma che permette loro anche di riprodursi in situazioni di prosperità.
+Con le impostazioni di default, il valore ideale del parametro `speed` sarà **2**:
+
+![](img/speed.png)
+
+Invece, il valore ideale del parametro `metabolism` sarà 1:
+
+![](img/metabolism.png)
+
+Si ipotizza che qualsiasi siano i valori minimi e massimi di `speed` e `metabolism`, verranno favoriti **valori più alti** di `speed` e **valori più bassi** di `metabolism`.
