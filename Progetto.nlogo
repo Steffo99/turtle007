@@ -269,7 +269,9 @@ end
 
 to go
   tick
-  try-respawn-food
+  if food-respawn [
+    try-respawn-food
+  ]
   respawn-ants
   ask ants [t-work]
   ask patches [p-evaporate-pheromone]
@@ -362,7 +364,7 @@ Number
 INPUTBOX
 1015
 90
-1100
+1120
 150
 nest-color
 12.0
@@ -373,7 +375,7 @@ Color
 INPUTBOX
 1125
 155
-1210
+1230
 215
 food-color
 43.0
@@ -568,9 +570,9 @@ NIL
 
 INPUTBOX
 730
-425
-835
-485
+445
+800
+505
 ants-qty
 100.0
 1
@@ -578,10 +580,10 @@ ants-qty
 Number
 
 INPUTBOX
-840
-425
-925
-485
+880
+445
+950
+505
 ant-color
 15.0
 1
@@ -589,10 +591,10 @@ ant-color
 Color
 
 INPUTBOX
-930
-425
-1015
-485
+955
+445
+1025
+505
 ant-carrying-color
 18.0
 1
@@ -624,7 +626,7 @@ Number
 INPUTBOX
 1015
 350
-1100
+1120
 410
 pheromone-color
 65.0
@@ -633,9 +635,9 @@ pheromone-color
 Color
 
 PLOT
-1215
+1235
 90
-1415
+1435
 240
 Ants with food
 Ticks
@@ -651,9 +653,9 @@ PENS
 "with-food" 1.0 0 -1069655 true "" "plot count ants with [carrying-food = 1]"
 
 PLOT
-1215
+1235
 245
-1415
+1435
 395
 Patches with food
 Ticks
@@ -713,9 +715,9 @@ show-food
 -1000
 
 INPUTBOX
-1105
+1125
 90
-1190
+1230
 150
 distance-color
 135.0
@@ -735,10 +737,10 @@ show-distance
 -1000
 
 INPUTBOX
-730
-490
-800
-550
+805
+445
+875
+505
 random-angle
 45.0
 1
@@ -746,10 +748,10 @@ random-angle
 Number
 
 INPUTBOX
-880
-490
-950
-550
+805
+510
+875
+570
 max-speed
 2.0
 1
@@ -757,10 +759,10 @@ max-speed
 Number
 
 INPUTBOX
-1030
-490
-1100
-550
+955
+510
+1025
+570
 max-metabolism
 5.0
 1
@@ -768,10 +770,10 @@ max-metabolism
 Number
 
 INPUTBOX
-805
-490
-875
-550
+730
+510
+800
+570
 min-speed
 1.0
 1
@@ -779,10 +781,10 @@ min-speed
 Number
 
 INPUTBOX
-955
-490
-1025
-550
+880
+510
+950
+570
 min-metabolism
 1.0
 1
@@ -790,10 +792,10 @@ min-metabolism
 Number
 
 INPUTBOX
-1105
-490
-1175
-550
+1030
+510
+1100
+570
 max-hunger
 400.0
 1
@@ -867,9 +869,9 @@ food-o-3
 Number
 
 PLOT
-1215
+1235
 400
-1415
+1435
 550
 Ant deaths
 NIL
@@ -885,9 +887,9 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot ant-deaths"
 
 PLOT
-1420
+1440
 90
-1620
+1640
 240
 Ant speeds
 NIL
@@ -903,9 +905,9 @@ PENS
 "default" 1.0 1 -13791810 true "" "histogram [speed] of ants"
 
 PLOT
-1420
+1440
 295
-1620
+1640
 445
 Ant metabolisms
 NIL
@@ -921,9 +923,9 @@ PENS
 "default" 1.0 1 -6459832 true "" "histogram [metabolism] of turtles"
 
 MONITOR
-1530
+1550
 450
-1580
+1600
 495
 M 3
 count ants with [metabolism = 3]
@@ -932,9 +934,9 @@ count ants with [metabolism = 3]
 11
 
 MONITOR
-1475
+1495
 450
-1525
+1545
 495
 M 2
 count ants with [metabolism = 2]
@@ -943,9 +945,9 @@ count ants with [metabolism = 2]
 11
 
 MONITOR
-1420
+1440
 450
-1470
+1490
 495
 M 1
 count ants with [metabolism = 1]
@@ -954,9 +956,9 @@ count ants with [metabolism = 1]
 11
 
 MONITOR
-1585
+1605
 450
-1635
+1655
 495
 M 4
 count ants with [metabolism = 4]
@@ -965,9 +967,9 @@ count ants with [metabolism = 4]
 11
 
 MONITOR
-1640
+1660
 450
-1690
+1710
 495
 M 5
 count ants with [metabolism = 5]
@@ -976,9 +978,9 @@ count ants with [metabolism = 5]
 11
 
 MONITOR
-1420
+1440
 245
-1515
+1535
 290
 Speed 1
 count ants with [speed = 1]
@@ -987,9 +989,9 @@ count ants with [speed = 1]
 11
 
 MONITOR
-1520
+1540
 245
-1615
+1635
 290
 Speed 2
 count ants with [speed = 2]
@@ -998,9 +1000,9 @@ count ants with [speed = 2]
 11
 
 PLOT
-1625
+1645
 90
-1825
+1845
 240
 Ant hunger
 NIL
@@ -1014,6 +1016,17 @@ false
 "" ""
 PENS
 "default" 50.0 1 -5825686 true "" "histogram [hunger] of ants"
+
+SWITCH
+1125
+220
+1230
+253
+food-respawn
+food-respawn
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
