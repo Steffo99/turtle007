@@ -58,3 +58,4 @@ In particolare, si evidenziano i branch:
 - [`2-poison`](https://github.com/Steffo99/turtle007/tree/2-poison), una versione del modello che include anche una sorgente di veleno.
 - [`2-ant-apocalypse`](https://github.com/Steffo99/turtle007/tree/2-ant-apocalypse), una versione del modello che rende necessario alle formiche di nutrirsi, pena la morte.
 - [`2-death-and-rebirth`](https://github.com/Steffo99/turtle007/tree/2-death-and-rebirth), una versione del modello che rende necessario alle formiche di nutrirsi, pena la morte, ma che permette loro anche di riprodursi in situazioni di prosperità.
+- [`2-metabolismo`](https://github.com/Steffo99/turtle007/tree/2-metabolismo), una versione del modello che include ricomparsa del cibo e velocità e metabolismo casuali delle formiche.
