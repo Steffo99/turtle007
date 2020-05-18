@@ -1,6 +1,7 @@
 breed [ants ant]
 patches-own [pheromone food nest distance-from-nest]
-ants-own [carrying-food]
+ants-own [carrying-food speed metabolism hunger]
+globals [ant-deaths ants-to-respawn]
 
 to setup
   clear-all
@@ -10,6 +11,8 @@ to setup
   setup-ants
   ask patches [p-paint-patch]
   ask ants [t-paint-ant]
+  set ant-deaths 0
+  set ants-to-respawn 0
 end
 
 to p-paint-patch
@@ -54,9 +57,25 @@ to p-setup-nest
 end
 
 to setup-food
+  add-food-1
+  add-food-2
+  add-food-3
+end
+
+to add-food-1
   ask patches [
     p-add-food food-x-1 food-y-1 food-size-1
+  ]
+end
+
+to add-food-2
+  ask patches [
     p-add-food food-x-2 food-y-2 food-size-2
+  ]
+end
+
+to add-food-3
+  ask patches [
     p-add-food food-x-3 food-y-3 food-size-3
   ]
 end
@@ -73,9 +92,18 @@ to setup-ants
   ask ants [t-setup-ant]
 end
 
+to respawn-ants
+  create-ants ants-to-respawn [t-setup-ant]
+  set ants-to-respawn 0
+end
+
 to t-setup-ant
   set color ant-color
   set carrying-food 0
+  ; Ho usato dei float invece che degli int, va bene lo stesso?
+  set speed (random (max-speed - min-speed + 1)) + min-speed
+  set metabolism (random (max-metabolism - min-metabolism + 1)) + min-metabolism
+  set hunger max-hunger
   setxy nest-x nest-y
   fd nest-size
 end
@@ -163,15 +191,36 @@ to t-drop-food
   rt 180
 end
 
-to t-try-drop-food
+to-report t-try-drop-food
   if carrying-food = 1 and t-is-over-nest [
     t-drop-food
+    report true
   ]
+  report false
 end
 
 to t-add-pheromone
   ask patch-here [
     set pheromone pheromone + 60
+  ]
+end
+
+to t-die
+  ; "To die is human, to respawn... divine!" --Zeus, Dota 2
+  set ant-deaths ant-deaths + 1
+  set ants-to-respawn ants-to-respawn + 1
+  ; Die interrompe la funzione!
+  die
+end
+
+to t-resupply
+  set hunger max-hunger
+end
+
+to t-consume-food
+  set hunger hunger - metabolism
+  if hunger <= 0 [
+    t-die
   ]
 end
 
@@ -184,13 +233,44 @@ to t-work
   ]
   left random random-angle
   right random random-angle
-  fd 1
-  t-try-pick-up-food
-  t-try-drop-food
+  t-consume-food
+  repeat speed [
+    fd 1
+    t-try-pick-up-food
+    if t-try-drop-food [
+      t-resupply
+    ]
+  ]
+end
+
+to try-respawn-food-1
+  if ticks mod food-r-1 = food-o-1 [
+    add-food-1
+  ]
+end
+
+to try-respawn-food-2
+  if ticks mod food-r-2 = food-o-2 [
+    add-food-2
+  ]
+end
+
+to try-respawn-food-3
+  if ticks mod food-r-3 = food-o-3 [
+    add-food-3
+  ]
+end
+
+to try-respawn-food
+  try-respawn-food-1
+  try-respawn-food-2
+  try-respawn-food-3
 end
 
 to go
   tick
+  try-respawn-food
+  respawn-ants
   ask ants [t-work]
   ask patches [p-evaporate-pheromone]
   diffuse pheromone (diffusion-pct / 100)
@@ -291,9 +371,9 @@ nest-color
 Color
 
 INPUTBOX
-1015
+1125
 155
-1100
+1210
 215
 food-color
 43.0
@@ -414,9 +494,9 @@ HORIZONTAL
 
 TEXTBOX
 760
-465
+380
 910
-483
+398
 NIL
 11
 0.0
@@ -424,14 +504,14 @@ NIL
 
 SLIDER
 730
-435
+350
 902
-468
+383
 diffusion-pct
 diffusion-pct
 0
 100
-52.0
+57.0
 1
 1
 %
@@ -439,14 +519,14 @@ HORIZONTAL
 
 SLIDER
 730
-470
+385
 902
-503
+418
 evaporation-pct
 evaporation-pct
 0
 100
-10.0
+20.0
 1
 1
 %
@@ -487,21 +567,21 @@ NIL
 1
 
 INPUTBOX
-905
-350
-1010
-410
+730
+425
+835
+485
 ants-qty
-1000.0
+100.0
 1
 0
 Number
 
 INPUTBOX
-1015
-350
-1100
-410
+840
+425
+925
+485
 ant-color
 15.0
 1
@@ -509,10 +589,10 @@ ant-color
 Color
 
 INPUTBOX
-1105
-350
-1190
-410
+930
+425
+1015
+485
 ant-carrying-color
 18.0
 1
@@ -520,10 +600,10 @@ ant-carrying-color
 Color
 
 INPUTBOX
-1105
-415
-1205
-475
+905
+350
+955
+410
 pheromone-min
 0.1
 1
@@ -531,10 +611,10 @@ pheromone-min
 Number
 
 INPUTBOX
-1105
-480
-1205
-540
+960
+350
+1010
+410
 pheromone-max
 5.0
 1
@@ -543,9 +623,9 @@ Number
 
 INPUTBOX
 1015
-415
+350
 1100
-475
+410
 pheromone-color
 65.0
 1
@@ -553,10 +633,10 @@ pheromone-color
 Color
 
 PLOT
-735
-575
-935
-725
+1215
+90
+1415
+240
 Ants with food
 Ticks
 Ants
@@ -571,10 +651,10 @@ PENS
 "with-food" 1.0 0 -1069655 true "" "plot count ants with [carrying-food = 1]"
 
 PLOT
-940
-575
-1140
-725
+1215
+245
+1415
+395
 Patches with food
 Ticks
 Patches
@@ -587,16 +667,6 @@ false
 "" ""
 PENS
 "default" 1.0 0 -7171555 true "" "plot count patches with [food = 1]"
-
-TEXTBOX
-865
-10
-1380
-76
-TODO: nuovi grafici e aggiunte belline!
-11
-0.0
-1
 
 SWITCH
 360
@@ -665,15 +735,285 @@ show-distance
 -1000
 
 INPUTBOX
-905
-415
-1010
-475
+730
+490
+800
+550
 random-angle
 45.0
 1
 0
 Number
+
+INPUTBOX
+880
+490
+950
+550
+max-speed
+2.0
+1
+0
+Number
+
+INPUTBOX
+1030
+490
+1100
+550
+max-metabolism
+5.0
+1
+0
+Number
+
+INPUTBOX
+805
+490
+875
+550
+min-speed
+1.0
+1
+0
+Number
+
+INPUTBOX
+955
+490
+1025
+550
+min-metabolism
+1.0
+1
+0
+Number
+
+INPUTBOX
+1105
+490
+1175
+550
+max-hunger
+400.0
+1
+0
+Number
+
+INPUTBOX
+1015
+155
+1065
+215
+food-r-1
+210.0
+1
+0
+Number
+
+INPUTBOX
+1070
+155
+1120
+215
+food-o-1
+0.0
+1
+0
+Number
+
+INPUTBOX
+1015
+220
+1065
+280
+food-r-2
+210.0
+1
+0
+Number
+
+INPUTBOX
+1070
+220
+1120
+280
+food-o-2
+70.0
+1
+0
+Number
+
+INPUTBOX
+1015
+285
+1065
+345
+food-r-3
+210.0
+1
+0
+Number
+
+INPUTBOX
+1070
+285
+1120
+345
+food-o-3
+140.0
+1
+0
+Number
+
+PLOT
+1215
+400
+1415
+550
+Ant deaths
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot ant-deaths"
+
+PLOT
+1420
+90
+1620
+240
+Ant speeds
+NIL
+NIL
+1.0
+3.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 1 -13791810 true "" "histogram [speed] of ants"
+
+PLOT
+1420
+295
+1620
+445
+Ant metabolisms
+NIL
+NIL
+1.0
+6.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 1 -6459832 true "" "histogram [metabolism] of turtles"
+
+MONITOR
+1530
+450
+1580
+495
+M 3
+count ants with [metabolism = 3]
+0
+1
+11
+
+MONITOR
+1475
+450
+1525
+495
+M 2
+count ants with [metabolism = 2]
+0
+1
+11
+
+MONITOR
+1420
+450
+1470
+495
+M 1
+count ants with [metabolism = 1]
+0
+1
+11
+
+MONITOR
+1585
+450
+1635
+495
+M 4
+count ants with [metabolism = 4]
+0
+1
+11
+
+MONITOR
+1640
+450
+1690
+495
+M 5
+count ants with [metabolism = 5]
+17
+1
+11
+
+MONITOR
+1420
+245
+1515
+290
+Speed 1
+count ants with [speed = 1]
+17
+1
+11
+
+MONITOR
+1520
+245
+1615
+290
+Speed 2
+count ants with [speed = 2]
+0
+1
+11
+
+PLOT
+1625
+90
+1825
+240
+Ant hunger
+NIL
+NIL
+0.0
+400.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 50.0 1 -5825686 true "" "histogram [hunger] of ants"
 
 @#$#@#$#@
 ## WHAT IS IT?
