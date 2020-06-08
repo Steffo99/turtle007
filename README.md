@@ -45,10 +45,6 @@ Nel sistema sono presenti due tipi di feedback:
 - <span style="background-color: lightgreen; color: darkgreen;">**Positivo**: Più intensa e recente è la traccia di feromone, più le formiche contribuiranno ad aumentarne l'intensità tornando dalla fonte di cibo.
 - <span style="background-color: lightcoral; color: darkred;">**Negativo**: Con l'esaurimento della fonte di cibo, il feromone viene a mancare, cancellando un percorso non più produttivo.
 
-## Esperimenti
-
-TBD
-
 ## Branches
 
 Variazioni al modello sono visibili nei branch di questo repository.
