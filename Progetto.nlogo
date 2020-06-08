@@ -1,7 +1,7 @@
 breed [ants ant]
 patches-own [pheromone food nest distance-from-nest]
 ants-own [carrying-food speed metabolism hunger]
-globals [ant-deaths ants-to-respawn]
+globals [ant-deaths ant-hatches ants-to-respawn]
 
 to setup
   clear-all
@@ -103,7 +103,7 @@ to t-setup-ant
   ; Ho usato dei float invece che degli int, va bene lo stesso?
   set speed (random (max-speed - min-speed + 1)) + min-speed
   set metabolism (random (max-metabolism - min-metabolism + 1)) + min-metabolism
-  set hunger max-hunger
+  set hunger starting-hunger
   setxy nest-x nest-y
   fd nest-size
 end
@@ -206,21 +206,52 @@ to t-add-pheromone
 end
 
 to t-die
-  ; "To die is human, to respawn... divine!" --Zeus, Dota 2
   set ant-deaths ant-deaths + 1
-  set ants-to-respawn ants-to-respawn + 1
   ; Die interrompe la funzione!
   die
 end
 
+to-report t-partners
+  report other turtles in-radius partner-radius with [hunger >= reproduction-hunger]
+end
+
+to t-inherit [parents]
+  let top-speed max [speed] of parents
+  let bottom-speed min [speed] of parents
+  set speed (bottom-speed + random (top-speed - bottom-speed + 1))
+
+  let top-metabolism max [metabolism] of parents
+  let bottom-metabolism min [metabolism] of parents
+  set metabolism (bottom-metabolism + random (top-metabolism - bottom-metabolism + 1))
+end
+
+to t-hatch
+  let partners t-partners
+  if any? partners [
+    let partner item 0 sort-on [hunger] partners
+    let parents (turtle-set self partner)
+    ask parents [
+      set hunger hunger - reproduction-cost
+    ]
+    hatch-ants 1 [
+      t-setup-ant
+      t-inherit parents
+    ]
+    set ant-hatches ant-hatches + 1
+  ]
+end
+
 to t-resupply
-  set hunger max-hunger
+  set hunger hunger + food-value
 end
 
 to t-consume-food
   set hunger hunger - metabolism
   if hunger <= 0 [
     t-die
+  ]
+  if hunger >= reproduction-hunger [
+    t-hatch
   ]
 end
 
@@ -794,9 +825,9 @@ Number
 INPUTBOX
 1030
 510
-1100
+1120
 570
-max-hunger
+starting-hunger
 400.0
 1
 0
@@ -1008,7 +1039,7 @@ Ant hunger
 NIL
 NIL
 0.0
-400.0
+1000.0
 0.0
 10.0
 true
@@ -1019,14 +1050,94 @@ PENS
 
 SWITCH
 1125
-220
+285
 1230
-253
+318
 food-respawn
 food-respawn
 0
 1
 -1000
+
+INPUTBOX
+730
+575
+875
+635
+reproduction-hunger
+800.0
+1
+0
+Number
+
+INPUTBOX
+1125
+220
+1230
+280
+food-value
+400.0
+1
+0
+Number
+
+INPUTBOX
+880
+575
+1025
+635
+reproduction-cost
+40.0
+1
+0
+Number
+
+PLOT
+1235
+555
+1435
+705
+Ant hatches
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -14439633 true "" "plot ant-hatches"
+
+PLOT
+1440
+555
+1640
+705
+Ants
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -7500403 true "" "plot count ants"
+
+INPUTBOX
+1030
+575
+1175
+635
+partner-radius
+3.0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
