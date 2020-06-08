@@ -7,41 +7,112 @@ Questo progetto estende il progetto [`2-metabolismo`](https://github.com/Steffo9
 ### Variabili globali
 
 Sono state aggiunte al modello le seguenti variabili globali:
-- `sgl_scorta`, che rappresenta la quantità di risorse al di sopra della quale una formica può tentare la riproduzione;
-- `prezzo`: funzione della variabile turtles-own `scorta`, rappresenta il costo in risorse della riproduzione. Solitamente è settata a `1/10*scorta`.
 
-### Variabili delle formiche
+- `reproduction-hunger`, la quantità di `hunger` al di sopra della quale una formica può tentare di riprodursi;
+- `reproduction-cost`, la quantità di `hunger` che sarà sottratta alle formiche dopo essersi riprodotte;
+- `partner-radius`, la distanza massima a cui una formica può scegliere il suo partner.
 
-Le formiche hanno le stesse variabili turtles-own dei precedenti modelli. In particolare, per questo progetto ci saranno utili:
+### Comportamento delle formiche
 
-- `angolo_virata`;
-- `velocità`;
-- `metabolismo`.
+Il comportamento delle formiche è stato cambiato nei seguenti modi:
 
-###Comportamento delle formiche
+#### Modificato: `t-die`
 
-al modello sono state aggiunte queste nuove funzionalità:
+```diff
+ to t-die
+   set ant-deaths ant-deaths + 1
+-  set ants-to-respawn ants-to-respawn + 1
+   ; Die interrompe la funzione!
+   die
+ end
+```
 
-- `cerca-partner`: se la `scorta` di una formica eccede `sgl_scorta` e essa sta trasportando del cibo con sé (quindi `ant color = ant-carrying-color`), essa può cercare un partner per la riproduzione. Per fare ciò, individua tutte le formiche nei dintorni, in un range di TODO caselle, le ordina in base alla loro `scorta` e, se la formica con `scorta` maggiore ha un numero di risorse maggiore di `sgl_scorta`, sceglierà quella come partner.
+Dopo che sono morte, le formiche non respawnano più.
 
-```TODO: funzione apposita```
+#### Modificato: `t-consume-food`
 
-- `crea_figlio`: viene creata una nuova formica. Creare un figlio è un processo dispendioso, la `scorta` dei genitori viene infatti diminuita in funzione della variabile `prezzo`. Ciascuna delle variabili turtles-own della nuova formica (ossia `velocità`, `metabolismo` e `angolo_virata`) assumerà il valore della corrispondente variabile di uno dei due genitori, scelto a caso.
+```diff
+ to t-consume-food
+   set hunger hunger - metabolism
+   if hunger <= 0 [
+     t-die
+   ]
++  if hunger >= reproduction-hunger [
++    t-hatch
++  ]
+ end
+```
 
-```TODO: funzione apposita```
+Se le formiche hanno abbastanza cibo per riprodursi, chiameranno la procedura `t-hatch` descritta in seguito.
+
+#### Aggiunto: `t-partners`
+
+```diff
++to-report t-partners
++  report other turtles in-radius partner-radius with [hunger >= reproduction-hunger]
++end
+```
+
+Nella scelta dei partner, le formiche considerano solo le altre formiche entro `partner-radius` patch di distanza aventi abbastanza `hunger` per riprodursi.
+
+> Nota: La funzione `in-radius` rallenta significativamente il modello all'aumentare delle formiche presenti dall'interno di esso.
+>
+> È possibile realizzare una versione più efficiente utilizzando:
+> ```
+> to-report t-partners
+>  report other turtles-here with [hunger >= reproduction-hunger]
+> end
+> ```
+>
+> Ciò però sacrifica la possibilità di decidere il raggio a cui le formiche si possono riprodurre, limitandolo al valore "0" (ovvero, la patch stessa in cui si trova attualmente la formica).
+
+#### Aggiunto: `t-hatch`
+
+```diff
++to t-hatch
++  let partners t-partners
++  if any? partners [
++    let partner item 0 sort-on [hunger] partners
++    let parents (turtle-set self partner)
++    ask parents [
++      set hunger hunger - reproduction-cost
++    ]
++    hatch-ants 1 [
++      t-setup-ant
++      t-inherit parents
++    ]
++    set ant-hatches ant-hatches + 1
++  ]
++end
+```
+
+Se le formiche trovano almeno un partner con cui riprodursi, scelgono il partner con il valore di `hunger` più alto e creano una nuova formica, che eredita i valori di `speed` e `metabolism` dei genitori con `t-inherit` (descritta sotto).
+
+### Aggiunto: `t-inherit`
+
+```diff
++to t-inherit [parents]
++  let top-speed max [speed] of parents
++  let bottom-speed min [speed] of parents
++  set speed (bottom-speed + random (top-speed - bottom-speed + 1))
++
++  let top-metabolism max [metabolism] of parents
++  let bottom-metabolism min [metabolism] of parents
++  set metabolism (bottom-metabolism + random (top-metabolism - bottom-metabolism + 1))
++end
+```
+
+Le nuove formiche nate prendono come `speed` e `metabolism` un valore casuale tra i valori dei rispettivi parametri posseduti dai genitori.
 
 ## Feedback del sistema
 
 In aggiunta ai feedback precedenti, in questo progetto abbiamo nuovi feedback:
 
-- <span style="background-color: lightgreen; color: darkgreen;">**Positivo**: Le formiche con più scorta, e quindi con una *fitness* più alta, hanno più possibilità di riprodursi e passare i loro parametri ai figli, che quindi, probabilmente, avranno fitness alta a loro volta e si riprodurranno spesso.</span>
-- <span style="background-color: lightcoral; color: darkred;">**Negativo**: Il costo della riproduzione fa diminuire la `scorta` dei genitori, evitando che essi si riproducano a dismisura (TODO: questo è il feddback giusto?).</span>
+- <span style="background-color: lightgreen; color: darkgreen;">**Positivo**: Le formiche con più `hunger` (praticamente la funzione *fitness* del modello), hanno più possibilità di riprodursi e passare i loro parametri ai figli.</span>
+- <span style="background-color: lightcoral; color: darkred;">**Negativo**: Il `reproduction-cost` fa diminuire l'`hunger` dei genitori, rendendo più probabile la loro morte (e quindi sostituzione).</spaw>
 
 ## Dinamica del sistema
 
-Le formiche con i parametri migliori avranno più possibilità di riprodursi, e passare suddetti parametri ai figli.
-*Il sistema tende all’ottimo*: dopo un certo periodo di tempo, la maggior parte delle formiche presenti nell’ambiente avrà le variabili ideali per il suddetto.
+Le formiche con i parametri migliori si riprodurranno più spesso, e passeranno i loro parametri ai loro figli.
 
-## Osservazioni
-
-TODO
+*Il sistema tende all’ottimo*: dopo un certo numero di ticks (~2100 con la configurazione predefinita), le uniche formiche restanti nel sistema saranno quelle con valori ideali per le variabili `speed` e `metabolism`; tutte le altre si saranno **estinte**.
