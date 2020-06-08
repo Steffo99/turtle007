@@ -100,3 +100,11 @@ Invece, il valore ideale del parametro `metabolism` sarà 1:
 ![](img/metabolism.png)
 
 Si ipotizza che qualsiasi siano i valori minimi e massimi di `speed` e `metabolism`, verranno favoriti **valori più alti** di `speed` e **valori più bassi** di `metabolism`.
+
+## Branches
+
+Variazioni al modello sono disponibili nei branch di questo repository.
+
+In particolare, si evidenzia il branch:
+
+- [`2-evoluzione`](https://github.com/Steffo99/turtle007/tree/2-evoluzione), una variante di questo modello a cui viene aggiunta la possibilità per le formiche di riprodursi e passare i loro valori di `speed` e `metabolism` ai figli.
