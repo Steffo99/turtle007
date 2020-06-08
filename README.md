@@ -115,4 +115,4 @@ In aggiunta ai feedback precedenti, in questo progetto abbiamo nuovi feedback:
 
 Le formiche con i parametri migliori si riprodurranno più spesso, e passeranno i loro parametri ai loro figli.
 
-*Il sistema tende all’ottimo*: dopo un certo numero di ticks (~2100 con la configurazione predefinita), le uniche formiche restanti nel sistema saranno quelle con valori ideali per le variabili `speed` e `metabolism`; tutte le altre si saranno **estinte**.
+*Il sistema tende all’ottimo*: dopo un certo numero di ticks (~2100 con la configurazione predefinita), le uniche formiche restanti nel sistema saranno quelle con valori ideali (o prevalenti, in caso di convergenza prematura) per le variabili `speed` e `metabolism`; tutte le altre si saranno **estinte**. Il sistema tende quindi ad una condizione in cui tutte le formiche sono uguali, oppure estinte in caso di convergenza prematura tremendamente sfavorevole (ad esempio, velocità 1 metabolismo 5).
