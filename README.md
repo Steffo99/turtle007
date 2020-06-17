@@ -1,22 +1,22 @@
 # `1-efficiency-tiredness`
 
-Questo progetto estende il progetto [`1-base`](https://github.com/Steffo99/turtle007/tree/1-base) aggiungendo parametri di stanchezza e controlli di efficienza alle termiti.
+Questo branch estende il progetto [`1-base`](https://github.com/Steffo99/turtle007/tree/1-base) aggiungendo parametri di stanchezza e controlli di efficienza alle termiti.
 
 ## Ambiente NetLogo
 
-### Aggiunti toggle
+### Toggle aggiunti
 
 Aggiunti due toggle, `Efficiency` e `Tiredness`, che attivano e disattivano le due funzioni.
 
-### Aggiunto slider
+### Slider aggiunti
 
-Aggiunto slider `EnergyLostPerAction`, settata di defaut al 20%, che regola l'energia persa dalle formiche per ogni azione non andata a buon fine.
+Aggiunto slider `EnergyLostPerAction`, settato di defaut al 20%, che regola l'energia persa dalle formiche per ogni azione non andata a buon fine.
 
 ## Comportamento delle formiche
 
-### Aggiunti boolean `efficient?` e `tired?`
+### Aggiunti reporter `efficient?` e `tired?`
 
-Al programma netLogo sono state aggiunte le seguenti due funzioni booleane:
+Al programma sono state aggiunti i due seguenti reporter:
 
 #### `efficient?`
 
@@ -42,7 +42,9 @@ to-report efficient? [needEmptyArea]
   ]
 end
 ```
+
 #### tired?
+
 ```
 to-report tired? [energy]
 ; Funzione booleana che monitora l'energia rimasta alla termite
@@ -56,17 +58,21 @@ to-report tired? [energy]
   ]
 end
 ```
+
 ### Modificate condizioni
 
 Sono state modificate alcune condizioni all'interno del programma, aggiungendovi `efficient?` o `tired?` a seconda della situazione.
 
 Nello specifico sono stati aggiunti:
 
-- un `or not efficient?(true)` dentro al `while[ pcolor = black ]` nella funzione `cerca-cibo`. In questo modo la formicha continuerà a vagare alla ricerca di cibo anche dopo averne visto, se non considererà efficiente raccoglierlo;
+- `or not efficient?(true)` dentro al `while[ pcolor = black ]` nella funzione `cerca-cibo`.  
+  In questo modo la formicha continuerà a vagare alla ricerca di cibo anche dopo averne visto, se non considererà efficiente raccoglierlo;
 
-- un `or not efficient?(false)` è stato invece messo nella `appoggia-cibo`, nel `while[ pcolor != black ]`. La formica vagherà cercando un posto dove appoggiare cibo finchè non troverà una patch vuota E in cui appoggiare cibo sia efficiente;
+- `or not efficient?(false)` è stato invece messo nella `appoggia-cibo`, nel `while[ pcolor != black ]`.  
+  La formica vagherà cercando un posto dove appoggiare cibo finchè non troverà una patch vuota E in cui appoggiare cibo sia efficiente;
 
-- un `and not tired?(energy)` all'interno del `while[ pcolor != black ]` nella funzione `allontanati`. La formica potrebbe smettere di allontanarsi se stanca.
+- `and not tired?(energy)` all'interno del `while[ pcolor != black ]` nella funzione `allontanati`.  
+  La formica potrebbe smettere di allontanarsi se stanca.
 
 All'interno di `allontanati` è stato inoltre aggiunto un meccanismo che riduceva l'energia della formica ad ogni ciclo del while.
 
