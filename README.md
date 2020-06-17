@@ -1,6 +1,8 @@
-# `2-evoluzione`
+# `2-random-mutation`
 
-Questo progetto estende il progetto [`2-metabolismo`](https://github.com/Steffo99/turtle007/tree/2-metabolismo). In questa versione vengono aggiunti i parametri riproduttivi e i meccanismi di scelta del partner, che portano ad un’evoluzione del formicaio nel suo complesso.
+Questo branch estende il progetto [`2-evoluzione`](https://github.com/Steffo99/turtle007/tree/2-evoluzione).
+
+In questa versione viene aggiunta l'aspetto della mutazione casuale nel modello: le caratteristiche migliori, come la velocità più alta o il metabolismo più basso, possono venire ottenute solo mediante mutazione in quanto non presenti nella popolazione originale.
 
 ## Ambiente
 
@@ -8,115 +10,44 @@ Questo progetto estende il progetto [`2-metabolismo`](https://github.com/Steffo9
 
 Sono state aggiunte al modello le seguenti variabili globali:
 
-- `reproduction-hunger`, la quantità di `hunger` al di sopra della quale una formica può tentare di riprodursi;
-- `reproduction-cost`, la quantità di `hunger` che sarà sottratta alle formiche dopo essersi riprodotte;
-- `partner-radius`, la distanza massima a cui una formica può scegliere il suo partner.
+- `mutazioni`, contiene il numero di mutazioni che si sono verificate dall'inizio della simulazione;
+- `mutation-chance`, la probabilità che si verifichi una mutazione;
+- `max-speed-with-mutation`, la velocità massima ottenibile mediante mutazione.
 
 ### Comportamento delle formiche
 
 Il comportamento delle formiche è stato cambiato nei seguenti modi:
 
-#### Modificato: `t-die`
+#### Modificato: `t-hatch`
 
 ```diff
- to t-die
-   set ant-deaths ant-deaths + 1
--  set ants-to-respawn ants-to-respawn + 1
-   ; Die interrompe la funzione!
-   die
- end
-```
-
-Dopo che sono morte, le formiche non respawnano più.
-
-#### Modificato: `t-consume-food`
-
-```diff
- to t-consume-food
-   set hunger hunger - metabolism
-   if hunger <= 0 [
-     t-die
+ let partners t-partners
+ if any? partners [
+   let partner item 0 sort-on [hunger] partners
+   let parents (turtle-set self partner)
+   ask parents [
+     set hunger hunger - reproduction-cost
    ]
-+  if hunger >= reproduction-hunger [
-+    t-hatch
+   hatch-ants 1 [
+     t-setup-ant
++    ifelse random 100 > mutation-chance [t-inherit parents]
++    [t-mutation
++    set mutazioni (mutazioni + 1)]
 +  ]
- end
+   set ant-hatches ant-hatches + 1
+ ]
+
 ```
 
-Se le formiche hanno abbastanza cibo per riprodursi, chiameranno la procedura `t-hatch` descritta in seguito.
-
-#### Aggiunto: `t-partners`
+#### Aggiunto: `t-mutation`
 
 ```diff
-+to-report t-partners
-+  report other turtles in-radius partner-radius with [hunger >= reproduction-hunger]
++to t-mutation
++  set speed (random(max-speed-with-mutation) + 1)
++  set metabolism (random(max-metabolism) + 1)
 +end
 ```
-
-Nella scelta dei partner, le formiche considerano solo le altre formiche entro `partner-radius` patch di distanza aventi abbastanza `hunger` per riprodursi.
-
-> Nota: La funzione `in-radius` rallenta significativamente il modello all'aumentare delle formiche presenti dall'interno di esso.
->
-> È possibile realizzare una versione più efficiente utilizzando:
-> ```
-> to-report t-partners
->  report other turtles-here with [hunger >= reproduction-hunger]
-> end
-> ```
->
-> Ciò però sacrifica la possibilità di decidere il raggio a cui le formiche si possono riprodurre, limitandolo al valore "0" (ovvero, la patch stessa in cui si trova attualmente la formica).
-
-#### Aggiunto: `t-hatch`
-
-```diff
-+to t-hatch
-+  let partners t-partners
-+  if any? partners [
-+    let partner item 0 sort-on [hunger] partners
-+    let parents (turtle-set self partner)
-+    ask parents [
-+      set hunger hunger - reproduction-cost
-+    ]
-+    hatch-ants 1 [
-+      t-setup-ant
-+      t-inherit parents
-+    ]
-+    set ant-hatches ant-hatches + 1
-+  ]
-+end
-```
-
-Se le formiche trovano almeno un partner con cui riprodursi, scelgono il partner con il valore di `hunger` più alto e creano una nuova formica, che eredita i valori di `speed` e `metabolism` dei genitori con `t-inherit` (descritta sotto).
-
-### Aggiunto: `t-inherit`
-
-```diff
-+to t-inherit [parents]
-+  let top-speed max [speed] of parents
-+  let bottom-speed min [speed] of parents
-+  set speed (bottom-speed + random (top-speed - bottom-speed + 1))
-+
-+  let top-metabolism max [metabolism] of parents
-+  let bottom-metabolism min [metabolism] of parents
-+  set metabolism (bottom-metabolism + random (top-metabolism - bottom-metabolism + 1))
-+end
-```
-
-Le nuove formiche nate prendono come `speed` e `metabolism` un valore casuale tra i valori dei rispettivi parametri posseduti dai genitori.
-
-## Feedback del sistema
-
-In aggiunta ai feedback precedenti, in questo progetto abbiamo nuovi feedback:
-
-- <span style="background-color: lightgreen; color: darkgreen;">**Positivo**: Le formiche con più `hunger` (praticamente la funzione *fitness* del modello), hanno più possibilità di riprodursi e passare i loro parametri ai figli.</span>
-- <span style="background-color: lightcoral; color: darkred;">**Negativo**: Il `reproduction-cost` fa diminuire l'`hunger` dei genitori, rendendo più probabile la loro morte (e quindi sostituzione).</spaw>
 
 ## Dinamica del sistema
 
-Le formiche con i parametri migliori si riprodurranno più spesso, e passeranno i loro parametri ai loro figli.
-
-*Il sistema tende all’ottimo*: dopo un certo numero di ticks (~2100 con la configurazione predefinita), le uniche formiche restanti nel sistema saranno quelle con valori ideali (o prevalenti, in caso di convergenza prematura) per le variabili `speed` e `metabolism`; tutte le altre si saranno **estinte**. Il sistema tende quindi ad una condizione in cui tutte le formiche sono uguali, oppure estinte in caso di convergenza prematura tremendamente sfavorevole (ad esempio, velocità 1 e metabolismo 5).
-
-## Branches
-
-E' presente una variazione di questo modello, [`2-random-mutation`](https://github.com/Steffo99/turtle007/tree/2-random-mutation).
+La dinamica del sistema rimane pressochè invariata rispetto alla precedente versione, seppur rendendo inaccessibili le caratteristiche migliori se non mediante mutazione. La presenza di mutazione, inoltre, evita una stagnazione in una situazione sub-ottimale.
