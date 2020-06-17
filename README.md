@@ -1,6 +1,4 @@
-# Da insiemi di agenti a sistemi swarm adattativi
-
-_Di [Balugani Lorenzo](https://github.com/LBindustries), [Calzolari Chiara](https://github.com/Cookie-CHR) e [Pigozzi Stefano](https://github.com/Steffo99)_
+# `1-termiti`
 
 ## Descrizione
 
