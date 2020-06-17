@@ -35,7 +35,8 @@ Così facendo, le termiti raccolgono il cibo in **magazzini** progressivamente s
 
 ## Feedback del sistema
 
-Nel sistema sono presenti due tipi di feedback:
+Nel sistema si possono notare due principali feedback:
+
 - <span style="background-color: lightgreen; color: darkgreen;">**Positivo**: Più grande è un magazzino, più probabilità una termite avrà di capitarci sopra ed appoggiare lì il proprio cibo, portandolo a ingrandirsi nel tempo.
 - <span style="background-color: lightcoral; color: darkred;">**Negativo**: Meno grande è un magazzino, meno probabilità una termite avrà di capitarci sopra ed appoggiare lì il proprio cibo, portandolo a ridursi nel tempo.
 
