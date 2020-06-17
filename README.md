@@ -1,6 +1,6 @@
 # `2-metabolismo`
 
-Questo progetto estende il progetto [`2-base`](https://github.com/Steffo99/turtle007/tree/2-base) aggiungendo nuovi parametri alle formiche del sistema.
+Questo branch estende il progetto [`2-base`](https://github.com/Steffo99/turtle007/tree/2-base) aggiungendo nuovi parametri alle formiche del sistema.
 
 ## Ambiente
 
