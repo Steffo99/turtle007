@@ -6,7 +6,7 @@ Questo progetto estende il progetto [`1-base`](https://github.com/Steffo99/turtl
 
 ### Aggiunti toggle
 
-Aggiunti due toggle, `Efficiency` e `Tiredness`, che attivano e disattivano le due funzioni
+Aggiunti due toggle, `Efficiency` e `Tiredness`, che attivano e disattivano le due funzioni.
 
 ### Aggiunto slider
 
@@ -14,28 +14,29 @@ Aggiunto slider `EnergyLostPerAction`, settata di defaut al 20%, che regola l'en
 
 ## Comportamento delle formiche
 
-### Aggiunti boolean `effifient?` e `tired?`
+### Aggiunti boolean `efficient?` e `tired?`
 
-Al programma netLogo sono state aggiunte le seguenti due funzioni booleane
+Al programma netLogo sono state aggiunte le seguenti due funzioni booleane:
 
-#### efficient?
+#### `efficient?`
+
 ```
 to-report efficient? [needEmptyArea]
-; Funzione booleana che dice se è efficiente eseguire l'azione che la evoca
-; needEmptyArea è un bool che mi definisce l'obiettivo tra:
-; - cercare una zona semi-vuota da cui prelevate cibo (true)
-; - cercare una zona semi-piena in cui appoggiare il cibo (false)
+  ; Funzione booleana che dice se è efficiente eseguire l'azione che la evoca
+  ; needEmptyArea è un bool che mi definisce l'obiettivo tra:
+  ; - cercare una zona semi-vuota da cui prelevate cibo (true)
+  ; - cercare una zona semi-piena in cui appoggiare il cibo (false)
 
-  ;se non ho attivato la modalità efficiente, il bool è sempre soddisfatto
+  ; se non ho attivato la modalità efficiente, il bool è sempre soddisfatto
   if not Efficiency [report true]
 
-  ;altrimenti, entra in gioco il needEmptyArea
-  ifelse needEmptyArea
-  [ ;è considerata "vuota" un'area in cui ci sia meno del 40% di caselle con del cibo
+  ; altrimenti, entra in gioco il needEmptyArea
+  ifelse needEmptyArea [ 
+    ; è considerata "vuota" un'area in cui ci sia meno del 40% di caselle con del cibo
     report (count patches in-radius 2 with [pcolor != black] /
     count patches in-radius 2 < 0.4)
-  ]
-  [ ;è considerata "piena" un'area in cui ci sia più del 40% di caselle con del cibo
+  ][ 
+    ; è considerata "piena" un'area in cui ci sia più del 40% di caselle con del cibo
     report (count patches in-radius 2 with [pcolor != black] /
     count patches in-radius 2 > 0.4)
   ]
@@ -48,12 +49,16 @@ to-report tired? [energy]
 
   ; se non ho attivato la modalità tiredness, la formica avrà sempre energia sufficiente
   ; altrimenti, controllo se l'energia rimasta è sufficiente
-  ifelse not tiredness [report false][report (energy < random-float 10)]
+  ifelse not tiredness [
+    report false
+  ][
+    report (energy < random-float 10)
+  ]
 end
 ```
 ### Modificate condizioni
 
-Sono state modificate alcune condizioni all'interno del programma, aggiungendovi `efficient?` o `tired?` a seconda della situazione
+Sono state modificate alcune condizioni all'interno del programma, aggiungendovi `efficient?` o `tired?` a seconda della situazione.
 
 Nello specifico sono stati aggiunti:
 
@@ -71,4 +76,4 @@ Quando `Efficiency` sarà attivo, le formiche preleveranno e appoggeranno cibo s
 
 Quando `Tiredness` sarà attivo, le formiche avranno una chance di smettere di allontanarsi prima di aver trovato una pezza con del cibo. Questo prota alla formazione di gruppi più frastagliati.
 
-Quando entrambi gli switch saranno attivi, il comportamento descritto da `Efficiency` avrà la predominanza sul `Tiredness`
+Quando entrambi gli switch saranno attivi, il comportamento descritto da `Efficiency` avrà la predominanza sul `Tiredness`.
