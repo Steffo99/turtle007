@@ -51,7 +51,7 @@ to t-work
 +    t-try-eat-food
 +    if hunger >= hunger-max [
 +      die]
-   ]
++   ]
 end
 ```
 Se la formica è affamata (e la fame è attiva), la formica si dirige verso il nido per mangiare.  
