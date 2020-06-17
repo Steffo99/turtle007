@@ -30,14 +30,15 @@ Le patch (una alla volta, in ordine casuale) effetuano ad ogni `tick` le seguent
 
 ## Dinamica del sistema
 
-Le formiche, ad ogni `tick`, in base a ciò che trasportano, cercano o di prendere del cibo o di portarlo verso il nest. Sulla via di ritorno al nest, le formiche rilasciano feromone, che spinge altre formiche a risalirlo per giungere quindi alla fonte di cibo.
-L'ambiente gioca un ruolo importante dal momento che, facendo evaporare i feromoni, elimina vecchi percorsi che portano a fonti di cibo esaurite.
+Le formiche, ad ogni `tick`, in base a ciò che trasportano, cercano o di prendere del cibo o di portarlo verso il nido. Sulla via di ritorno al nido, le formiche rilasciano feromone, che spinge altre formiche a risalirlo per giungere quindi alla fonte di cibo.
+
+L'ambiente gioca un ruolo importante, dal momento che, facendo evaporare i feromoni, elimina vecchi percorsi che portano a fonti di cibo esaurite.
 
 ## Feedback del sistema
 
 Nel sistema sono presenti due tipi di feedback:
-- <span style="background-color: lightgreen; color: darkgreen;">**Positivo**: Più intensa e recente è la traccia di feromone, più le formiche contribuiranno ad aumentarne l'intensità tornando dalla fonte di cibo.
-- <span style="background-color: lightcoral; color: darkred;">**Negativo**: Con l'esaurimento della fonte di cibo, il feromone viene a mancare, cancellando un percorso non più produttivo.
+- <span style="background-color: lightgreen; color: darkgreen;">**Positivo**: Più intensa e recente è la traccia di feromone, più le formiche contribuiranno ad aumentarne l'intensità tornando dalla fonte di cibo.</span>
+- <span style="background-color: lightcoral; color: darkred;">**Negativo**: Con l'esaurimento della fonte di cibo, il feromone viene a mancare, cancellando un percorso non più produttivo.</span>
 
 ## Branches
 
