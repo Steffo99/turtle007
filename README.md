@@ -1,9 +1,5 @@
 # `2-base`
 
-## Descrizione
-
-Il progetto complessivo consiste in una **serie di realizzazioni di un modello multiagente** e di esperimenti su di esso; ogni nuova versione del modello è più raffinata della precedente. La versione iniziale non è un sistema collettivo; la versione finale realizza un sistema collettivo i cui elementi sono capaci di evolvere e di adattarsi all’ambiente.
-
 ## Ambiente
 
 L’ambiente è un [toroide](https://it.wikipedia.org/wiki/Toro_(geometria)) composto da 150x150 patch.
